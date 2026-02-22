@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore"
     )
 
-    project_name: str = "FastAPI Ollama RAG"
+    project_name: str = "FastAPI-Ollama-RAG"
     api_v1_prefix: str = "/api/v1"
     debug: bool = False
 
