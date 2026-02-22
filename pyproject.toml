@@ -1,0 +1,22 @@
+[project]
+name = "fastapi-ollama-rag"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Samshad", email = "samshad.ru@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.129.2",
+    "pydantic>=2.12.5",
+    "pydantic-settings>=2.13.1",
+    "uvicorn>=0.41.0",
+]
+
+[project.scripts]
+fastapi-ollama-rag = "fastapi_ollama_rag:main"
+
+[build-system]
+requires = ["uv_build>=0.10.4,<0.11.0"]
+build-backend = "uv_build"
