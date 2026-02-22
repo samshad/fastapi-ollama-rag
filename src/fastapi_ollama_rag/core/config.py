@@ -17,8 +17,8 @@ class Settings(BaseSettings):
 
     database_url: PostgresDsn
 
-    # Ollama Local Service
-    # Using host.docker.internal allows Docker containers to hit the host machine's Ollama instance.
+    # Using host.docker.internal allows Docker containers
+    # to hit the host machine's Ollama instance.
     ollama_base_url: str = Field(default="http://host.docker.internal:11434")
     ollama_generation_model: str = Field(default="deepseek-r1:8b")
     ollama_embedding_model: str = Field(default="mxbai-embed-large")
