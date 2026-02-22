@@ -20,3 +20,22 @@ fastapi-ollama-rag = "fastapi_ollama_rag:main"
 [build-system]
 requires = ["uv_build>=0.10.4,<0.11.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.2",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+# E: pycodestyle, F: Pyflakes, I: isort, UP: pyupgrade
+select = ["E", "F", "I", "UP"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
