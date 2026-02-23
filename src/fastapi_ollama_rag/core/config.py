@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     ollama_generation_model: str = Field(default="deepseek-r1:8b")
     ollama_embedding_model: str = Field(default="mxbai-embed-large")
 
+    betterstack_source_token: str | None = Field(default=None)
+
 
 # Instantiate settings to be imported across the application
 settings = Settings()

@@ -45,6 +45,8 @@ COPY --from=builder --chown=appuser:appuser /app /app
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1
 
+RUN mkdir -p /app/logs && chown -R appuser:appuser /app/logs
+
 # Drop root privileges
 USER appuser
 
