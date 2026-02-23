@@ -8,6 +8,7 @@ from fastapi import Depends, FastAPI
 from fastapi_ollama_rag.core.config import settings
 from fastapi_ollama_rag.core.database import close_db_connection, connect_to_db, get_db
 from fastapi_ollama_rag.core.logger import setup_logging
+from fastapi_ollama_rag.core.migrations import run_migrations
 
 setup_logging()
 
@@ -17,8 +18,13 @@ logger = structlog.get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up application lifecycle")
+
     await connect_to_db()
+
+    await run_migrations()
+
     yield
+
     logger.info("Shutting down application lifecycle")
     await close_db_connection()
 
