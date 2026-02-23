@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     ollama_base_url: str = Field(default="http://host.docker.internal:11434")
     ollama_generation_model: str = Field(default="deepseek-r1:8b")
     ollama_embedding_model: str = Field(default="mxbai-embed-large")
+    embedding_dimension: int = Field(default=1024)
 
     betterstack_source_token: str | None = Field(default=None)
 
