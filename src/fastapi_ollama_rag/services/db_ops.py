@@ -3,6 +3,7 @@ import json
 import asyncpg
 import structlog
 
+from fastapi_ollama_rag.models.chat import SearchResult
 from fastapi_ollama_rag.models.chunk import DocumentChunk
 
 logger = structlog.get_logger(__name__)
@@ -50,4 +51,48 @@ async def bulk_insert_chunks(
         logger.info("Bulk insertion successful")
     except Exception as e:
         logger.error("Failed to insert records into database", error=str(e))
+        raise
+
+
+async def search_similar_documents(
+    conn: asyncpg.Connection, query_embedding: list[float], limit: int = 5
+) -> list[SearchResult]:
+    """
+    Performs a vector similarity search using the HNSW index.
+    Returns the top 'limit' most semantically similar chunks.
+    """
+    # The <=> operator calculates Cosine Distance.
+    # Cosine Similarity = 1 - Cosine Distance.
+    # Order by distance ascending (closest first).
+    query = """
+            SELECT content, \
+                   metadata, \
+                   1 - (embedding <=> $1::vector) AS similarity
+            FROM documents
+            ORDER BY embedding <=> $1::vector
+                LIMIT $2; \
+            """
+
+    try:
+        logger.info("Executing vector search", limit=limit)
+
+        # The pgvector asyncpg codec handles the binary serialization automatically.
+        records = await conn.fetch(query, query_embedding, limit)
+
+        results = [
+            SearchResult(
+                text=record["content"],
+                metadata=json.loads(record["metadata"])
+                if isinstance(record["metadata"], str)
+                else record["metadata"],
+                similarity_score=record["similarity"],
+            )
+            for record in records
+        ]
+
+        logger.info("Vector search complete", results_found=len(results))
+        return results
+
+    except Exception as e:
+        logger.error("Failed to execute vector search", error=str(e))
         raise
