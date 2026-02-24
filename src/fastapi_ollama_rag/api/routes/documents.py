@@ -1,3 +1,5 @@
+import hashlib
+
 import structlog
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
@@ -6,17 +8,15 @@ from fastapi_ollama_rag.services.pdf_parser import parse_pdf
 
 logger = structlog.get_logger(__name__)
 
-# Group these endpoints under the "Documents" tag in Swagger UI
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 
 @router.post("/parse", response_model=ParsedDocument)
 async def upload_and_parse_pdf(file: UploadFile = File(...)):
     """
-    Accepts a PDF file upload, extracts the text entirely in-memory,
-    and returns the structured text and metadata.
+    Accepts a PDF, calculates its SHA-256 fingerprint for deduplication,
+    extracts the text, and returns the structured data.
     """
-    # Validate the file type
     if file.content_type != "application/pdf":
         logger.warning("Invalid file type uploaded", content_type=file.content_type)
         raise HTTPException(
@@ -24,11 +24,15 @@ async def upload_and_parse_pdf(file: UploadFile = File(...)):
         )
 
     try:
-        # Await the file stream into RAM
         file_bytes = await file.read()
 
-        # Pass the raw bytes to the decoupled PyMuPDF service
+        file_hash = hashlib.sha256(file_bytes).hexdigest()
+        logger.info("File upload received", filename=file.filename, file_hash=file_hash)
+
         parsed_doc = await parse_pdf(file_bytes)
+
+        parsed_doc.metadata["file_hash"] = file_hash
+        parsed_doc.metadata["filename"] = file.filename
 
         return parsed_doc
 
