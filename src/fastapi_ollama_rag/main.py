@@ -5,7 +5,7 @@ import asyncpg
 import structlog
 from fastapi import Depends, FastAPI
 
-from fastapi_ollama_rag.api.routes import documents
+from fastapi_ollama_rag.api.routes import chat, documents
 from fastapi_ollama_rag.core.config import settings
 from fastapi_ollama_rag.core.database import close_db_connection, connect_to_db, get_db
 from fastapi_ollama_rag.core.logger import setup_logging
@@ -33,6 +33,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.project_name, lifespan=lifespan)
 
 app.include_router(documents.router, prefix=settings.api_v1_prefix)
+app.include_router(chat.router, prefix=settings.api_v1_prefix)
 
 DBConnection = Annotated[asyncpg.Connection, Depends(get_db)]
 
