@@ -9,8 +9,8 @@ from pydantic import BaseModel
 from fastapi_ollama_rag.core.database import get_db
 from fastapi_ollama_rag.models.chat import SearchResult
 from fastapi_ollama_rag.services.db_ops import search_similar_documents
-from fastapi_ollama_rag.services.generation import generate_rag_response
 from fastapi_ollama_rag.services.embeddings import generate_embedding
+from fastapi_ollama_rag.services.generation import generate_rag_response
 
 logger = structlog.get_logger(__name__)
 
@@ -45,10 +45,7 @@ async def raw_vector_search(
 
 
 @router.post("/completions")
-async def chat_completions(
-        request: ChatRequest,
-        db: DBConnection = None
-):
+async def chat_completions(request: ChatRequest, db: DBConnection = None):
     """
     End-to-end RAG Chat Endpoint.
     1. Embeds the user's query.
@@ -64,7 +61,4 @@ async def chat_completions(
 
     logger.info("Received rag response", query=request.query, context=context)
 
-    return StreamingResponse(
-        response_generator,
-        media_type="text/plain"
-    )
+    return StreamingResponse(response_generator, media_type="text/plain")
