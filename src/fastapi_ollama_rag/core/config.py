@@ -26,6 +26,17 @@ class Settings(BaseSettings):
 
     betterstack_source_token: str | None = Field(default=None)
 
+    # Auth Settings
+    secret_key: str = "super-secret-default-key-change-in-production"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
+
+    # SMTP Settings (Gmail)
+    smtp_server: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+
 
 # Instantiate settings to be imported across the application
 settings = Settings()
