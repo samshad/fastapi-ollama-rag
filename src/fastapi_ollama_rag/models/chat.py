@@ -12,3 +12,17 @@ class SearchResult(BaseModel):
     similarity_score: float = Field(
         ..., description="Cosine similarity score (1.0 is exact match)"
     )
+
+
+class ChatRequest(BaseModel):
+    """
+    Represents a chat payload.
+    """
+
+    query: str
+    limit: int = 5
+
+
+class ChatResponse(BaseModel):
+    answer: str
+    context: list[str]

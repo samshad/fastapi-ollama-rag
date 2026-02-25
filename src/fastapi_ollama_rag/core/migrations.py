@@ -1,5 +1,6 @@
-import structlog
 from pathlib import Path
+
+import structlog
 
 from fastapi_ollama_rag.core import database
 from fastapi_ollama_rag.core.config import settings
@@ -23,8 +24,7 @@ async def run_migrations() -> None:
 
     sql_content = schema_path.read_text(encoding="utf-8")
 
-    sql_content = sql_content.replace("{dimension}",
-                                      str(settings.embedding_dimension))
+    sql_content = sql_content.replace("{dimension}", str(settings.embedding_dimension))
 
     try:
         logger.info("Running database migrations from SQL file...")
