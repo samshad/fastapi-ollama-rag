@@ -17,6 +17,10 @@ class Settings(BaseSettings):
 
     database_url: PostgresDsn
 
+    # RAG Tuning Settings
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+
     # Using host.docker.internal allows Docker containers
     # to hit the host machine's Ollama instance.
     ollama_base_url: str = Field(default="http://host.docker.internal:11434")

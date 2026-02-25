@@ -15,13 +15,14 @@ dependencies = [
     "logtail-python>=0.3.4",
     "passlib[bcrypt]>=1.7.4",
     "pgvector>=0.4.2",
-    "pydantic>=2.12.5",
+    "pydantic[email]>=2.12.5",
     "pydantic-settings>=2.13.1",
     "pyjwt>=2.11.0",
     "pymupdf>=1.27.1",
     "python-multipart>=0.0.22",
     "structlog>=25.5.0",
     "uvicorn>=0.41.0",
+    "aiosql>=15.0",
 ]
 
 [project.scripts]
