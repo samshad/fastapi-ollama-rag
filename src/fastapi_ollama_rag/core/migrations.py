@@ -1,4 +1,5 @@
 import structlog
+from pathlib import Path
 
 from fastapi_ollama_rag.core import database
 from fastapi_ollama_rag.core.config import settings
@@ -11,57 +12,27 @@ async def run_migrations() -> None:
     Executes idempotent database migrations.
     Creates the documents table, ensures all columns exist,
     and builds the HNSW vector index.
+    Sets up the multi-tenant architecture:
+    Users, OTPs, and linking users to Documents table.
     """
     if database.pool is None:
         logger.error("Database pool is not initialized. Cannot run migrations.")
         raise RuntimeError("Database pool is not initialized. Cannot run migrations.")
 
-    dimension = settings.embedding_dimension
+    schema_path = Path(__file__).parent / "sql" / "schema.sql"
 
-    # Table schema with UUID, standard text,
-    # JSONB metadata, and the VECTOR column
-    create_table_sql = f"""
-    CREATE TABLE IF NOT EXISTS documents (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        content TEXT NOT NULL,
-        metadata JSONB NOT NULL DEFAULT '{{}}'::jsonb,
-        embedding VECTOR({dimension}),
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    );
-    """
+    sql_content = schema_path.read_text(encoding="utf-8")
 
-    add_created_at_sql = """
-    ALTER TABLE documents
-    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(); \
-    """
-
-    # HNSW Index optimized for cosine similarity search (<=>)
-    # While an exact nearest neighbor search requires
-    # scanning every single row O(N),
-    # HNSW achieves O(log N) search complexity.
-    create_index_sql = """
-    CREATE INDEX IF NOT EXISTS idx_documents_embedding
-        ON documents
-        USING hnsw (embedding vector_cosine_ops);
-    """
-
-    # GIN Index for fast filtering on JSONB metadata
-    create_metadata_index_sql = """
-    CREATE INDEX IF NOT EXISTS idx_documents_metadata
-        ON documents
-        USING gin (metadata);
-    """
+    sql_content = sql_content.replace("{dimension}",
+                                      str(settings.embedding_dimension))
 
     try:
-        logger.info("Running database migrations...")
+        logger.info("Running database migrations from SQL file...")
         async with database.pool.acquire() as conn:
-            # Wrap all schema changes in a single transaction
             async with conn.transaction():
-                await conn.execute(create_table_sql)
-                await conn.execute(add_created_at_sql)
-                await conn.execute(create_index_sql)
-                await conn.execute(create_metadata_index_sql)
-        logger.info("Database migrations completed successfully.")
+                await conn.execute(sql_content)
+
+        logger.info("Database migrations completed successfully...")
     except Exception as e:
-        logger.error("Failed to execute database migrations", error=str(e))
+        logger.error("Failed to execute database migrations!!", error=str(e))
         raise
