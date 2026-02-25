@@ -1,6 +1,7 @@
-import structlog
 from email.message import EmailMessage
+
 import aiosmtplib
+import structlog
 
 from fastapi_ollama_rag.core.config import settings
 
@@ -22,7 +23,11 @@ class EmailService:
     async def send_otp_email(self, to_email: str, otp: str) -> None:
         """Sends a 6-digit registration OTP to the specified user."""
         if not self.smtp_username or not self.smtp_password:
-            logger.warning("SMTP credentials missing. Mocking email send.", otp=otp, to_email=to_email)
+            logger.warning(
+                "SMTP credentials missing. Mocking email send.",
+                otp=otp,
+                to_email=to_email,
+            )
             return
 
         message = EmailMessage()
@@ -30,7 +35,10 @@ class EmailService:
         message["To"] = to_email
         message["Subject"] = "RAG Application Verification Code"
 
-        body = f"Welcome!\n\nYour verification code is: {otp}\n\nThis code will expire in 10 minutes."
+        body = (
+            f"Welcome!\n\nYour verification code is: {otp}\n\n"
+            f"This code will expire in 10 minutes."
+        )
         message.set_content(body)
 
         try:
@@ -45,5 +53,7 @@ class EmailService:
             )
             logger.info("OTP email successfully dispatched!", to_email=to_email)
         except Exception as e:
-            logger.error("Failed to dispatch OTP email!!", error=str(e), to_email=to_email)
+            logger.error(
+                "Failed to dispatch OTP email!!", error=str(e), to_email=to_email
+            )
             raise RuntimeError("Could not dispatch email. Please try again later.")

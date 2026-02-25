@@ -1,7 +1,8 @@
-from datetime import datetime, timedelta, timezone
-from passlib.context import CryptContext
+from datetime import UTC, datetime, timedelta
+
 import jwt
 import structlog
+from passlib.context import CryptContext
 
 from fastapi_ollama_rag.core.config import settings
 
@@ -28,17 +29,17 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
+        expire = datetime.now(UTC) + timedelta(
+            minutes=settings.access_token_expire_minutes
+        )
 
     to_encode.update({"exp": expire})
 
     logger.info("Generating JWT token...")
 
     encoded_jwt = jwt.encode(
-        to_encode,
-        settings.secret_key,
-        algorithm=settings.jwt_algorithm
+        to_encode, settings.secret_key, algorithm=settings.jwt_algorithm
     )
     return encoded_jwt
