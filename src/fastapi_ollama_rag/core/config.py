@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     chunk_overlap: int = 200
 
     # Using host.docker.internal allows Docker containers
-    # to hit the host machine's Ollama instance.
+    # for the host machine's Ollama instance.
     ollama_base_url: str = Field(default="http://host.docker.internal:11434")
     ollama_generation_model: str = Field(default="deepseek-r1:8b")
     ollama_embedding_model: str = Field(default="mxbai-embed-large")
@@ -42,5 +42,4 @@ class Settings(BaseSettings):
     smtp_password: str | None = None
 
 
-# Instantiate settings to be imported across the application
 settings = Settings()
