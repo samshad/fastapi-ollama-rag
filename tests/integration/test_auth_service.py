@@ -92,9 +92,6 @@ async def test_request_registration_otp_saves_to_db(mock_send_email):
     valid = await user_repo.get_valid_otp(email, otp)
     assert valid is not None
 
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
-
 
 @pytest.mark.asyncio
 @patch("fastapi_ollama_rag.services.auth.email_service.send_otp_email", new_callable=AsyncMock)
@@ -116,9 +113,6 @@ async def test_request_registration_otp_twice_saves_two_otps(mock_send_email):
     # Both OTPs should be retrievable
     assert await user_repo.get_valid_otp(email, first_otp) is not None
     assert await user_repo.get_valid_otp(email, second_otp) is not None
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
 
 
 @pytest.mark.asyncio
@@ -198,9 +192,6 @@ async def test_verify_and_register_user_already_registered(mock_send_email, test
     assert exc_info.value.status_code == 400
     assert "User already registered" in exc_info.value.detail
 
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
-
 
 @pytest.mark.asyncio
 @patch("fastapi_ollama_rag.services.auth.email_service.send_otp_email", new_callable=AsyncMock)
@@ -231,7 +222,6 @@ async def test_verify_and_register_password_is_hashed(mock_send_email):
 async def test_verify_and_register_cleans_up_otps(mock_send_email):
     """
     Edge Case: After registration, OTPs for the email should be deleted.
-    L50: await user_repo.delete_otps_for_email(email)
     """
     email = f"register_{uuid.uuid4()}@example.com"
 
@@ -263,9 +253,6 @@ async def test_verify_and_register_wrong_email_for_otp(mock_send_email):
 
     assert exc_info.value.status_code == 400
     assert "Invalid or expired" in exc_info.value.detail
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(email_a)
 
 
 @pytest.mark.asyncio
@@ -304,9 +291,6 @@ async def test_verify_and_register_expired_otp():
 
     assert exc_info.value.status_code == 400
     assert "Invalid or expired" in exc_info.value.detail
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
 
 
 @pytest.mark.asyncio
@@ -480,9 +464,6 @@ async def test_request_password_reset_otp_success(mock_send_email, test_user):
     assert len(kwargs["otp"]) == 6
     assert kwargs["otp"].isdigit()
 
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
-
 
 @pytest.mark.asyncio
 @patch("fastapi_ollama_rag.services.auth.email_service.send_otp_email", new_callable=AsyncMock)
@@ -504,9 +485,6 @@ async def test_request_password_reset_otp_returns_none(mock_send_email, test_use
     """Return type should be None."""
     result = await request_password_reset_otp(test_user["email"])
     assert result is None
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(test_user["email"])
 
 
 @pytest.mark.asyncio
@@ -530,9 +508,6 @@ async def test_request_password_reset_otp_saves_to_db(mock_send_email, test_user
 
     valid = await user_repo.get_valid_otp(email, otp)
     assert valid is not None
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
 
 
 @pytest.mark.asyncio
@@ -566,9 +541,6 @@ async def test_request_password_reset_otp_generates_6_digit_code(
     otp = kwargs["otp"]
     assert len(otp) == 6
     assert otp.isdigit()
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(test_user["email"])
 
 
 # ===================================================================
@@ -629,9 +601,6 @@ async def test_reset_password_expired_otp():
     assert exc_info.value.status_code == 400
     assert "Invalid or expired" in exc_info.value.detail
 
-    # Cleanup
-    await user_repo.delete_otps_for_email(email)
-
 
 @pytest.mark.asyncio
 @patch("fastapi_ollama_rag.services.auth.email_service.send_otp_email", new_callable=AsyncMock)
@@ -652,9 +621,6 @@ async def test_reset_password_wrong_email_for_otp(mock_send_email, test_user):
 
     assert exc_info.value.status_code == 400
     assert "Invalid or expired" in exc_info.value.detail
-
-    # Cleanup
-    await user_repo.delete_otps_for_email(email_a)
 
 
 @pytest.mark.asyncio
@@ -683,7 +649,6 @@ async def test_reset_password_hashes_new_password(mock_send_email, test_user):
 async def test_reset_password_cleans_up_otps(mock_send_email, test_user):
     """
     Edge Case: After reset, OTPs for the email should be deleted.
-    L105: await user_repo.delete_otps_for_email(email)
     """
     email = test_user["email"]
 

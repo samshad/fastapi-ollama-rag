@@ -364,9 +364,6 @@ async def test_save_otp_same_code_different_emails():
     assert await get_valid_otp(email_a, code) is None
     assert await get_valid_otp(email_b, code) is not None
 
-    # Cleanup
-    await delete_otps_for_email(email_b)
-
 
 # ===================================================================
 # get_valid_otp
@@ -476,9 +473,6 @@ async def test_get_valid_otp_id_is_valid_uuid():
     parsed = uuid.UUID(str(otp["id"]))
     assert parsed is not None
 
-    # Cleanup
-    await delete_otps_for_email(email)
-
 
 @pytest.mark.asyncio
 async def test_get_valid_otp_ignores_expired_returns_valid():
@@ -499,9 +493,6 @@ async def test_get_valid_otp_ignores_expired_returns_valid():
     otp = await get_valid_otp(email, code)
     assert otp is not None
     assert "id" in otp.keys()
-
-    # Cleanup
-    await delete_otps_for_email(email)
 
 
 # ===================================================================
@@ -573,9 +564,6 @@ async def test_delete_otps_does_not_affect_other_emails():
 
     assert await get_valid_otp(email_a, "111111") is None
     assert await get_valid_otp(email_b, "222222") is not None
-
-    # Cleanup
-    await delete_otps_for_email(email_b)
 
 
 @pytest.mark.asyncio

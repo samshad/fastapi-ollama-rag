@@ -600,11 +600,29 @@ async def test_get_files_ordered_by_created_at_desc(
     db_conn: asyncpg.Connection, test_user: dict
 ):
     """Files should be returned newest-first (ORDER BY created_at DESC)."""
-    import asyncio
-
-    for name in ["first.pdf", "second.pdf", "third.pdf"]:
-        await insert_test_file(db_conn, test_user["id"], filename=name)
-        await asyncio.sleep(0.05)
+    # Insert files with explicitly different timestamps.
+    # NOTE: NOW() returns the transaction start time (constant within the
+    # rollback-wrapped test), so we use interval arithmetic to create
+    # distinct created_at values.
+    for offset, name in enumerate(["first.pdf", "second.pdf", "third.pdf"]):
+        file_hash = str(uuid.uuid4())
+        chunks = get_dummy_chunks(2)
+        embeddings = [DUMMY_EMBEDDING] * 2
+        await bulk_insert_chunks(
+            conn=db_conn,
+            chunks=chunks,
+            embeddings=embeddings,
+            user_id=test_user["id"],
+            filename=name,
+            file_hash=file_hash,
+        )
+        # Shift created_at forward so the ordering query can distinguish them
+        await db_conn.execute(
+            "UPDATE files SET created_at = NOW() + ($1 || ' seconds')::interval "
+            "WHERE file_hash = $2",
+            str(offset),
+            file_hash,
+        )
 
     files = await get_files_for_user(db_conn, test_user["id"])
     our = [f for f in files if f["filename"] in ("first.pdf", "second.pdf", "third.pdf")]

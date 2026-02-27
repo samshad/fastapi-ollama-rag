@@ -43,7 +43,11 @@ async def test_init_connection_propagates_register_vector_error():
 @pytest.mark.asyncio
 async def test_connect_to_db_success():
     """Test successfully creating a connection pool."""
+    mock_bootstrap = AsyncMock()
     with patch(
+        "fastapi_ollama_rag.core.database.asyncpg.connect", new_callable=AsyncMock,
+        return_value=mock_bootstrap,
+    ), patch(
         "fastapi_ollama_rag.core.database.asyncpg.create_pool", new_callable=AsyncMock
     ) as mock_create_pool:
         mock_pool_instance = AsyncMock()
@@ -53,6 +57,10 @@ async def test_connect_to_db_success():
 
         mock_create_pool.assert_awaited_once()
         assert db_module.pool is mock_pool_instance
+        mock_bootstrap.execute.assert_awaited_once_with(
+            "CREATE EXTENSION IF NOT EXISTS vector"
+        )
+        mock_bootstrap.close.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -61,6 +69,9 @@ async def test_connect_to_db_passes_correct_parameters():
     Test that create_pool is called with the expected DSN, init hook, and pool sizes.
     """
     with patch(
+        "fastapi_ollama_rag.core.database.asyncpg.connect", new_callable=AsyncMock,
+        return_value=AsyncMock(),
+    ), patch(
         "fastapi_ollama_rag.core.database.asyncpg.create_pool", new_callable=AsyncMock
     ) as mock_create_pool:
         mock_create_pool.return_value = AsyncMock()
@@ -79,6 +90,9 @@ async def test_connect_to_db_passes_correct_parameters():
 async def test_connect_to_db_failure():
     """Test that database connection failures are bubbled up."""
     with patch(
+        "fastapi_ollama_rag.core.database.asyncpg.connect", new_callable=AsyncMock,
+        return_value=AsyncMock(),
+    ), patch(
         "fastapi_ollama_rag.core.database.asyncpg.create_pool", new_callable=AsyncMock
     ) as mock_create_pool:
         mock_create_pool.side_effect = Exception("Simulated DB Connection Error")
@@ -91,6 +105,9 @@ async def test_connect_to_db_failure():
 async def test_connect_to_db_failure_leaves_pool_none():
     """Test that pool remains None when connect_to_db fails."""
     with patch(
+        "fastapi_ollama_rag.core.database.asyncpg.connect", new_callable=AsyncMock,
+        return_value=AsyncMock(),
+    ), patch(
         "fastapi_ollama_rag.core.database.asyncpg.create_pool", new_callable=AsyncMock
     ) as mock_create_pool:
         mock_create_pool.side_effect = OSError("network unreachable")
@@ -107,6 +124,9 @@ async def test_connect_to_db_called_twice_overwrites_pool():
     Test that calling connect_to_db twice replaces the pool reference (potential leak).
     """
     with patch(
+        "fastapi_ollama_rag.core.database.asyncpg.connect", new_callable=AsyncMock,
+        return_value=AsyncMock(),
+    ), patch(
         "fastapi_ollama_rag.core.database.asyncpg.create_pool", new_callable=AsyncMock
     ) as mock_create_pool:
         first_pool = AsyncMock()
