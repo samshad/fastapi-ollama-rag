@@ -12,7 +12,7 @@ A production-grade, fully asynchronous, multi-tenant Retrieval-Augmented Generat
 ## System Architecture
 
 <p align="center">
-  <img src="docs/architecture.svg" alt="System Architecture Diagram" width="100%"/>
+  <img src="docs/rag-architecture.webp" alt="System Architecture Diagram" width="100%"/>
 </p>
 
 ### Authentication & Multi-Tenancy
