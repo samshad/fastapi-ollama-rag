@@ -5,6 +5,7 @@ import asyncio
 import asyncpg
 import pytest
 
+from helpers import track_test_email
 from fastapi_ollama_rag.repository.user_repo import (
     create_user,
     get_user_by_email,
@@ -25,6 +26,7 @@ from fastapi_ollama_rag.repository.user_repo import (
 async def test_create_user_and_retrieval():
     """Test creating a user and fetching them by both Email and ID."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     hashed_password = "secure_hash_123"
 
     new_user = await create_user(email=email, hashed_password=hashed_password)
@@ -46,6 +48,7 @@ async def test_create_user_and_retrieval():
 async def test_create_user_returns_id_and_email():
     """The RETURNING clause only returns id and email."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     new_user = await create_user(email=email, hashed_password="hash")
 
     assert "id" in new_user.keys()
@@ -57,6 +60,7 @@ async def test_create_user_returns_id_and_email():
 async def test_create_user_id_is_valid_uuid():
     """The auto-generated id should be a valid UUID."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     new_user = await create_user(email=email, hashed_password="hash")
 
     parsed = uuid.UUID(str(new_user["id"]))
@@ -70,6 +74,7 @@ async def test_create_user_is_verified_true():
     Verify this by fetching the user back.
     """
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email=email, hashed_password="hash")
 
     user = await get_user_by_email(email)
@@ -82,6 +87,8 @@ async def test_create_user_unique_ids():
     """Two different users should get different auto-generated UUIDs."""
     email_a = f"test_a_{uuid.uuid4()}@example.com"
     email_b = f"test_b_{uuid.uuid4()}@example.com"
+    track_test_email(email_a)
+    track_test_email(email_b)
 
     user_a = await create_user(email=email_a, hashed_password="hash")
     user_b = await create_user(email=email_b, hashed_password="hash")
@@ -96,6 +103,7 @@ async def test_create_user_created_at_auto_populated():
     Verify the field is set by fetching the full row directly.
     """
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     new_user = await create_user(email=email, hashed_password="hash")
     user_id = str(new_user["id"])
 
@@ -114,6 +122,7 @@ async def test_create_user_duplicate_email_raises():
     Creating two users with the same email should raise.
     """
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email=email, hashed_password="hash_1")
 
     with pytest.raises(asyncpg.UniqueViolationError):
@@ -140,6 +149,7 @@ async def test_get_user_by_email_returned_fields():
     Verify all four fields are present in the returned Record.
     """
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email=email, hashed_password="pw_hash")
 
     user = await get_user_by_email(email)
@@ -155,6 +165,7 @@ async def test_get_user_by_email_returned_fields():
 async def test_get_user_by_email_returns_correct_password_hash():
     """The hashed_password stored should match what was provided at creation."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email=email, hashed_password="original_hash")
 
     user = await get_user_by_email(email)
@@ -168,6 +179,7 @@ async def test_get_user_by_email_case_sensitive():
     'User@Example.com' != 'user@example.com'.
     """
     email = f"CaseSensitive_{uuid.uuid4()}@Example.COM"
+    track_test_email(email)
     await create_user(email=email, hashed_password="hash")
 
     # Exact case → found
@@ -197,6 +209,7 @@ async def test_get_user_by_id_returned_fields():
     Note: hashed_password is deliberately excluded from this query.
     """
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     new_user = await create_user(email=email, hashed_password="hash")
     user_id = str(new_user["id"])
 
@@ -229,6 +242,7 @@ async def test_get_user_by_id_invalid_uuid_raises():
 async def test_update_user_password():
     """Test that the password hash is correctly updated in the DB."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email, "old_hash")
 
     await update_user_password(email, "new_hash_999")
@@ -255,6 +269,7 @@ async def test_update_user_password_nonexistent_email():
 async def test_update_user_password_returns_none():
     """update_user_password uses '!' (execute) SQL, so it returns None."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email, "hash")
 
     result = await update_user_password(email, "updated_hash")
@@ -265,6 +280,7 @@ async def test_update_user_password_returns_none():
 async def test_update_user_password_multiple_times():
     """Edge Case: Updating the password multiple times in succession."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email, "hash_v1")
 
     await update_user_password(email, "hash_v2")
@@ -278,6 +294,7 @@ async def test_update_user_password_multiple_times():
 async def test_update_password_preserves_other_fields():
     """Updating password should NOT change email or is_verified."""
     email = f"test_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     await create_user(email, "original_hash")
 
     user_before = await get_user_by_email(email)
@@ -297,6 +314,8 @@ async def test_update_password_does_not_affect_other_users():
     """Updating user A's password should not change user B's."""
     email_a = f"test_a_{uuid.uuid4()}@example.com"
     email_b = f"test_b_{uuid.uuid4()}@example.com"
+    track_test_email(email_a)
+    track_test_email(email_b)
     await create_user(email_a, "pw_a")
     await create_user(email_b, "pw_b")
 
@@ -317,6 +336,7 @@ async def test_update_password_does_not_affect_other_users():
 async def test_save_otp_returns_none():
     """save_otp uses '!' (execute) SQL, so it returns None."""
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     result = await save_otp(email, "123456", expires_at)
@@ -330,6 +350,7 @@ async def test_save_multiple_otps_same_email():
     Multiple OTPs can be stored for the same email.
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "111111", expires_at)
@@ -350,6 +371,8 @@ async def test_save_otp_same_code_different_emails():
     """
     email_a = f"otp_a_{uuid.uuid4()}@example.com"
     email_b = f"otp_b_{uuid.uuid4()}@example.com"
+    track_test_email(email_a)
+    track_test_email(email_b)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
     code = "999999"
 
@@ -377,6 +400,7 @@ async def test_save_otp_same_code_different_emails():
 async def test_otp_lifecycle():
     """Test saving, validating, and deleting OTP codes."""
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     code = "123456"
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
@@ -399,6 +423,8 @@ async def test_get_valid_otp_wrong_email():
     """Edge Case: Correct code but wrong email → None."""
     email = f"otp_{uuid.uuid4()}@example.com"
     other_email = f"other_{uuid.uuid4()}@example.com"
+    track_test_email(email)
+    track_test_email(other_email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "123456", expires_at)
@@ -414,6 +440,7 @@ async def test_get_valid_otp_expired():
     SQL: WHERE expires_at > NOW() — expired OTPs should not be returned.
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     # Already expired 10 minutes ago
     expired_at = datetime.now(UTC) - timedelta(minutes=10)
 
@@ -427,6 +454,7 @@ async def test_get_valid_otp_expired():
 async def test_get_valid_otp_returns_id_field():
     """The SQL only SELECT id — verify the returned Record has 'id'."""
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "123456", expires_at)
@@ -444,6 +472,7 @@ async def test_get_valid_otp_returns_most_recent():
     We verify that even with duplicates, only one record is returned.
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "123456", expires_at)
@@ -467,6 +496,7 @@ async def test_get_valid_otp_nonexistent_email():
 async def test_get_valid_otp_id_is_valid_uuid():
     """The returned 'id' should be a valid UUID."""
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "123456", expires_at)
@@ -487,6 +517,7 @@ async def test_get_valid_otp_ignores_expired_returns_valid():
     The query has `expires_at > NOW()`, so only the non-expired one should be returned.
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     code = "555555"
     expired_at = datetime.now(UTC) - timedelta(minutes=10)
     valid_at = datetime.now(UTC) + timedelta(minutes=10)
@@ -513,6 +544,7 @@ async def test_get_valid_otp_ignores_expired_returns_valid():
 async def test_delete_otps_for_email_returns_none():
     """delete_otps_for_email uses '!' (execute) SQL, so it returns None."""
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
     await save_otp(email, "123456", expires_at)
 
@@ -540,6 +572,7 @@ async def test_delete_otps_removes_all_for_email():
     The SQL is: DELETE FROM otps WHERE email = :email (no LIMIT).
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email, "111111", expires_at)
@@ -564,6 +597,8 @@ async def test_delete_otps_does_not_affect_other_emails():
     """Deleting OTPs for email A should not touch email B's OTPs."""
     email_a = f"otp_a_{uuid.uuid4()}@example.com"
     email_b = f"otp_b_{uuid.uuid4()}@example.com"
+    track_test_email(email_a)
+    track_test_email(email_b)
     expires_at = datetime.now(UTC) + timedelta(minutes=10)
 
     await save_otp(email_a, "111111", expires_at)
@@ -585,6 +620,7 @@ async def test_delete_otps_removes_expired_and_valid():
     It should remove BOTH expired and still-valid OTPs.
     """
     email = f"otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     expired_at = datetime.now(UTC) - timedelta(minutes=10)
     valid_at = datetime.now(UTC) + timedelta(minutes=10)
 

@@ -3,6 +3,7 @@ import pytest
 from unittest.mock import AsyncMock, patch
 from fastapi import HTTPException
 
+from helpers import track_test_email
 from fastapi_ollama_rag.services.auth import (
     request_registration_otp,
     verify_and_register_user,
@@ -24,6 +25,7 @@ from fastapi_ollama_rag.core.security import get_password_hash, verify_password
 async def test_request_registration_otp_success(mock_send_email):
     """Test generating an OTP for a brand new email."""
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
 
@@ -51,6 +53,7 @@ async def test_request_registration_otp_existing_user(mock_send_email, test_user
 async def test_request_registration_otp_returns_none(mock_send_email):
     """Return type should be None (no return value)."""
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     result = await request_registration_otp(email)
     assert result is None
 
@@ -68,6 +71,7 @@ async def test_request_registration_otp_existing_user_returns_none(mock_send_ema
 async def test_request_registration_otp_generates_6_digit_code(mock_send_email):
     """The generated OTP should be exactly 6 digits."""
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
 
@@ -82,6 +86,7 @@ async def test_request_registration_otp_generates_6_digit_code(mock_send_email):
 async def test_request_registration_otp_saves_to_db(mock_send_email):
     """The OTP should be saved in the DB and retrievable via get_valid_otp."""
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
 
@@ -104,6 +109,7 @@ async def test_request_registration_otp_twice_saves_two_otps(mock_send_email):
     Both should be valid (no deduplication).
     """
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
     first_otp = mock_send_email.call_args[1]["otp"]
@@ -133,6 +139,7 @@ async def test_request_registration_otp_email_failure_propagates(mock_send_email
     (the function has no try/except around it).
     """
     email = f"new_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     with pytest.raises(RuntimeError, match="SMTP failed"):
         await request_registration_otp(email)
@@ -151,6 +158,7 @@ async def test_request_registration_otp_email_failure_propagates(mock_send_email
 async def test_verify_and_register_user_success(mock_send_email):
     """Test successfully consuming an OTP to register a user."""
     email = f"register_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     password = "MySecurePassword123!"
 
     await request_registration_otp(email)
@@ -169,6 +177,7 @@ async def test_verify_and_register_user_success(mock_send_email):
 async def test_verify_and_register_invalid_otp():
     """Test that a bad OTP triggers a 400 Bad Request HTTPException."""
     email = f"bad_otp_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     with pytest.raises(HTTPException) as exc_info:
         await verify_and_register_user(email, "000000", "password123")
@@ -210,6 +219,7 @@ async def test_verify_and_register_password_is_hashed(mock_send_email):
     L47: hashed_pwd = security.get_password_hash(password)
     """
     email = f"register_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     raw_password = "PlainTextPassword123!"
 
     await request_registration_otp(email)
@@ -234,6 +244,7 @@ async def test_verify_and_register_cleans_up_otps(mock_send_email):
     L50: await user_repo.delete_otps_for_email(email)
     """
     email = f"register_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
     _, kwargs = mock_send_email.call_args
@@ -253,6 +264,8 @@ async def test_verify_and_register_wrong_email_for_otp(mock_send_email):
     """
     email_a = f"user_a_{uuid.uuid4()}@example.com"
     email_b = f"user_b_{uuid.uuid4()}@example.com"
+    track_test_email(email_a)
+    track_test_email(email_b)
 
     await request_registration_otp(email_a)
     _, kwargs = mock_send_email.call_args
@@ -273,6 +286,7 @@ async def test_verify_and_register_wrong_email_for_otp(mock_send_email):
 async def test_verify_and_register_returns_dict(mock_send_email):
     """Return type should be a dict with a 'message' key."""
     email = f"register_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     await request_registration_otp(email)
     _, kwargs = mock_send_email.call_args
@@ -293,6 +307,7 @@ async def test_verify_and_register_expired_otp():
     from datetime import datetime, timedelta, UTC
 
     email = f"expired_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     otp_code = "987654"
     expired_at = datetime.now(UTC) - timedelta(minutes=5)
 
@@ -319,6 +334,7 @@ async def test_verify_and_register_otp_replay_attack(mock_send_email):
     "User already registered" if the OTP somehow still exists).
     """
     email = f"replay_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     password = "ReplayTestPw123!"
 
     await request_registration_otp(email)
@@ -601,6 +617,7 @@ async def test_reset_password_invalid_otp():
     L96-100: `if not valid_otp: raise HTTPException(400)`
     """
     email = f"reset_{uuid.uuid4()}@example.com"
+    track_test_email(email)
 
     with pytest.raises(HTTPException) as exc_info:
         await reset_password(email, "000000", "NewPassword123!")
@@ -618,6 +635,7 @@ async def test_reset_password_expired_otp():
     from datetime import datetime, timedelta, UTC
 
     email = f"expired_reset_{uuid.uuid4()}@example.com"
+    track_test_email(email)
     otp_code = "654321"
     expired_at = datetime.now(UTC) - timedelta(minutes=5)
 
@@ -646,6 +664,7 @@ async def test_reset_password_wrong_email_for_otp(mock_send_email, test_user):
     otp_code = kwargs["otp"]
 
     fake_email = f"other_{uuid.uuid4()}@example.com"
+    track_test_email(fake_email)
 
     with pytest.raises(HTTPException) as exc_info:
         await reset_password(fake_email, otp_code, "NewPassword123!")
