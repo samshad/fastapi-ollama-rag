@@ -4,26 +4,16 @@
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
-[![Test Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
 
 A production-grade, fully asynchronous, multi-tenant Retrieval-Augmented Generation (RAG) API. Built with FastAPI, Neon Serverless Postgres (`pgvector`), and Ollama.
 
 ---
 
-## Architecture
+## System Architecture
 
-```
-┌─────────────┐     ┌──────────────┐     ┌──────────────────────────┐
-│   Client     │────▶│   FastAPI     │────▶│  Neon Postgres + pgvector │
-│  (Bearer JWT)│◀────│  (async)      │◀────│  (HNSW cosine index)     │
-└─────────────┘     └──────┬───────┘     └──────────────────────────┘
-                           │
-                    ┌──────▼───────┐
-                    │    Ollama     │
-                    │  embeddings  │
-                    │  generation  │
-                    └──────────────┘
-```
+<p align="center">
+  <img src="docs/architecture.svg" alt="System Architecture Diagram" width="100%"/>
+</p>
 
 ### Authentication & Multi-Tenancy
 - OAuth2 Password Bearer with JWT access tokens and bcrypt password hashing.
