@@ -5,6 +5,7 @@ from typing import AsyncGenerator
 
 from fastapi_ollama_rag.core.database import connect_to_db, close_db_connection, get_db
 from fastapi_ollama_rag.core import database
+from fastapi_ollama_rag.core.migrations import run_migrations
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
@@ -18,6 +19,7 @@ async def db_pool_lifecycle():
     the real database.
     """
     await connect_to_db()
+    await run_migrations()
     # Save pool reference before tests run, because some unit tests
     # (e.g., test_database.py) set database.pool = None as part of their mocking.
     pool_ref = database.pool
