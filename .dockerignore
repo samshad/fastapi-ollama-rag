@@ -1,5 +1,6 @@
 .git
 .venv
+.coverage
 .idea
 __pycache__
 .env

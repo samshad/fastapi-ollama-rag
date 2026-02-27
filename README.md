@@ -1,100 +1,174 @@
-# High-Performance FastAPI RAG System
+# FastAPI RAG System
 
-A production-grade, fully asynchronous Retrieval-Augmented Generation (RAG) API built with FastAPI, Neon Serverless Postgres (`pgvector`), and Ollama models. 
+[![CI](https://github.com/samshad/fastapi-ollama-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/samshad/fastapi-ollama-rag/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Code style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
 
-This project demonstrates enterprise-level backend architecture, focusing on non-blocking event loops, optimal database interactions, strict data contracts, and memory-efficient document processing.
-
-
-
----
-
-## 🏗 System Architecture
-
-The system is divided into two highly decoupled, asynchronous pipelines:
-
-### 1. Document Ingestion Pipeline (`/api/v1/documents/ingest`)
-* **Cryptographic Deduplication:** Calculates SHA-256 fingerprints of incoming byte streams to prevent redundant GPU embedding computations and database bloat.
-* **Non-Blocking Parsing:** Offloads CPU-bound PyMuPDF C-extension executions to a background thread pool (`asyncio.to_thread`), preventing the FastAPI event loop from stalling during massive PDF uploads.
-* **Semantic Chunking:** Utilizes a zero-dependency, $O(N)$ sliding-window algorithm to chunk text. Snaps to natural punctuation boundaries to ensure words and semantic thoughts are not severed.
-* **Vector Embedding & Bulk Upsert:** Communicates asynchronously with Ollama (`mxbai-embed-large`) to generate 1024-dimensional vectors. Utilizes `asyncpg.executemany` over a binary protocol for highly optimized bulk insertions into Postgres.
-
-### 2. Retrieval & Generation Pipeline (`/api/v1/chat/completions`)
-* **HNSW Vector Search:** Executes lightning-fast semantic similarity queries using `pgvector`'s Hierarchical Navigable Small World (HNSW) index and cosine distance (`<=>`).
-* **Strict Grounding:** Compiles retrieved chunks into a fortified system prompt, strictly instructing the LLM (`deepseek-r1:8b` / `llama3.2`) to avoid hallucinating outside the provided context.
-* **Real-Time Streaming:** Pipes the LLM's token-by-token generation directly into FastAPI's `StreamingResponse`, dropping perceived latency to sub-second levels.
-
-### 3. Observability & Telemetry
-* **Structured JSON Logging:** Completely bypasses standard Python text logging in favor of `structlog`. Every event is emitted as a strictly formatted JSON object containing contextual metadata (e.g., execution time, chunk counts, model names).
-* **Cloud Log Aggregation:** Streams logs asynchronously to **Better Stack**, providing a centralized, highly searchable observability plane for real-time monitoring, debugging, and alerting without blocking the FastAPI event loop.
+A production-grade, fully asynchronous, multi-tenant Retrieval-Augmented Generation (RAG) API. Built with FastAPI, Neon Serverless Postgres (`pgvector`), and Ollama.
 
 ---
 
-## 🧠 Key Architectural Decisions
+## System Architecture
 
-| Decision                     | Alternative Considered | Rationale |
-|:-----------------------------| :--- | :--- |
-| **Pure Python Chunker**      | LangChain / LlamaIndex | Avoiding framework bloat. Heavy orchestration libraries abstract away critical control flows. A custom $O(N)$ chunker is faster, deterministic, and easier to test. |
-| **`asyncpg` (Raw SQL)**      | SQLAlchemy / SQLModel | `asyncpg` is demonstrably the fastest Postgres driver for Python. Bypassing ORM overhead allows for precise tuning of `pgvector` operators and bulk binary insertions. |
-| **Neon Serverless Postgres** | ChromaDB / Milvus | Postgres with `pgvector` unifies relational metadata and vector data in a single ACID-compliant database, eliminating the "split-brain" infrastructure problem common in AI stacks. |
-| **`uv` Package Manager**     | pip / Poetry | `uv` is written in Rust, offering near-instant dependency resolution and installation, significantly speeding up CI/CD pipelines and Docker build times. |
-| **Structured Logging (```structlog``` + Better Stack)**      | Standard Python logging | Standard logging produces flat, unstructured text that is impossible to query effectively at scale. ```structlog``` enforces JSON-bound context, allowing Better Stack to parse and filter logs via SQL-like queries instantly during an incident. |
+<p align="center">
+  <img src="docs/architecture.svg" alt="System Architecture Diagram" width="100%"/>
+</p>
 
----
+### Authentication & Multi-Tenancy
+- OAuth2 Password Bearer with JWT access tokens and bcrypt password hashing.
+- OTP-based email verification via async SMTP (`aiosmtplib`) for registration and password reset.
+- Every document and vector is scoped to a `user_id` — queries are isolated at the database level.
 
-## 🛠 Tech Stack
+### Document Ingestion
+- **Deduplication** — SHA-256 file fingerprinting prevents redundant embedding computations.
+- **Non-blocking parsing** — CPU-bound PyMuPDF work is offloaded via `asyncio.to_thread`.
+- **Chunking** — Zero-dependency, O(N) sliding-window algorithm that snaps to natural punctuation boundaries.
+- **Bulk insert** — `asyncpg.executemany` over binary protocol for optimized vector storage.
 
-* **Framework:** FastAPI, Python 3.12+
-* **Database:** Neon (PostgreSQL 16), `pgvector`, `asyncpg`
-* **AI / LLM:** Ollama (Models: Generation & Embeddings), `httpx`
-* **Document Processing:** PyMuPDF (`fitz`), `python-multipart`
-* **Validation & Config:** Pydantic v2, `pydantic-settings`
-* **Infrastructure:** Docker, Docker Compose, `uv`
-* **Observability:** `structlog`, Better Stack (Cloud Log Management)
+### Retrieval & Generation
+- **HNSW vector search** — Cosine similarity via `pgvector` (`<=>` operator), filtered by authenticated user.
+- **Grounded generation** — Retrieved chunks are compiled into a system prompt that constrains the LLM to provided context only.
+- **Streaming** — Token-by-token LLM output piped directly into `StreamingResponse`.
 
----
+### Testing & CI/CD
+- **468 tests** across unit, integration, and API route layers — **100% line coverage**.
+- **Real database tests** — GitHub Actions spins up ephemeral `pgvector/pgvector:pg16` containers. No mocking SQL.
+- **Lint gate** — Ruff linter + formatter enforced before tests run.
 
-## 📡 API Reference
-
-Interactive Swagger documentation is automatically generated and available at `/docs` when the server is running.
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `POST` | `/api/v1/documents/ingest` | Uploads a PDF, hashes it, chunks text, generates embeddings, and bulk-inserts to Postgres. |
-| `POST` | `/api/v1/chat/search` | Performs a raw semantic vector search and returns chunks + cosine similarity scores. |
-| `POST` | `/api/v1/chat/completions` | End-to-end RAG. Embeds query, retrieves context, and streams the grounded LLM response. |
-| `GET` | `/health` | Application health and database connection status check. |
+### Observability
+- `structlog` JSON logging with rotating file handler and optional Better Stack cloud aggregation.
 
 ---
 
-## 🚀 Development Setup
+## Tech Stack
+
+| Layer | Technology |
+|:---|:---|
+| Framework | FastAPI, Uvicorn, Python 3.12+ |
+| Database | Neon PostgreSQL 16, `pgvector`, `asyncpg` (raw SQL) |
+| AI / LLM | Ollama (`mxbai-embed-large`, `deepseek-r1:8b`), `httpx` |
+| Auth | PyJWT, bcrypt, `aiosmtplib` |
+| Parsing | PyMuPDF, `python-multipart` |
+| Validation | Pydantic v2, `pydantic-settings` |
+| Testing | pytest, `pytest-asyncio`, `pytest-cov`, `pytest-mock` |
+| CI/CD | GitHub Actions (lint → test with ephemeral pgvector DB) |
+| Packaging | `uv`, Docker (multi-stage, non-root) |
+| Observability | `structlog`, Better Stack |
+
+---
+
+## API Endpoints
+
+All `/documents` and `/chat` endpoints require a valid `Bearer` token. Interactive docs available at `/docs`.
+
+| Category | Method | Endpoint | Description |
+|:---|:---|:---|:---|
+| Auth | `POST` | `/api/v1/auth/request-otp` | Email a 6-digit registration OTP |
+| Auth | `POST` | `/api/v1/auth/register` | Verify OTP and create account |
+| Auth | `POST` | `/api/v1/auth/login` | Authenticate and issue JWT |
+| Auth | `POST` | `/api/v1/auth/request-reset-otp` | Email a password reset OTP |
+| Auth | `POST` | `/api/v1/auth/reset-password` | Verify OTP and update password |
+| Docs | `POST` | `/api/v1/documents/ingest` | Upload, chunk, embed, and store a PDF |
+| Docs | `GET` | `/api/v1/documents/` | List user's uploaded files |
+| Docs | `DELETE` | `/api/v1/documents/{file_id}` | Delete file and all associated chunks |
+| Chat | `POST` | `/api/v1/chat/search` | Semantic vector search against user's documents |
+| Chat | `POST` | `/api/v1/chat/completions` | Full RAG — retrieve context and stream LLM response |
+| Health | `GET` | `/health` | Database connectivity check |
+
+---
+
+## Project Structure
+
+```
+src/fastapi_ollama_rag/
+├── main.py                  # Lifespan hooks, health check
+├── api/
+│   ├── dependencies.py      # JWT token validation
+│   └── routes/              # Auth, Chat, Documents
+├── core/
+│   ├── config.py            # Pydantic settings (env-driven)
+│   ├── database.py          # asyncpg connection pool
+│   ├── migrations.py        # Idempotent SQL schema runner
+│   ├── security.py          # bcrypt + JWT helpers
+│   ├── logger.py            # structlog configuration
+│   └── sql/                 # Raw SQL (schema, queries)
+├── models/                  # Pydantic request/response models
+├── repository/              # Database access layer
+└── services/                # Business logic (auth, chunker, embeddings, etc.)
+```
+
+---
+
+## Design Decisions
+
+| Decision | Why |
+|:---|:---|
+| `asyncpg` raw SQL over SQLAlchemy | Fastest Python Postgres driver. Direct control over `pgvector` operators and bulk binary insertions. No ORM overhead. |
+| Custom chunker over LangChain | Zero dependencies. Deterministic. Testable. No framework bloat for a simple sliding-window algorithm. |
+| Real DB integration tests over mocks | Mocking raw SQL hides syntax errors. Ephemeral `pgvector` containers catch real failures. |
+| Custom JWT/OTP over Auth0 | Full ownership of user data and auth flows. No vendor lock-in. Precise control over multi-tenant schema. |
+| Single Postgres over separate vector DB | `pgvector` unifies relational data and vectors in one ACID-compliant store. No split-brain infrastructure. |
+
+---
+
+## Getting Started
 
 ### Prerequisites
-1. [Docker & Docker Compose](https://docs.docker.com/engine/install/)
-2. [Ollama](https://ollama.com/download)
-3. A [Neon Serverless Postgres](https://neon.tech/) database URL
 
-### 1. Configure the Environment
-Clone the repository and create a `.env` file in the root directory:
+- [Docker & Docker Compose](https://docs.docker.com/engine/install/)
+- [Ollama](https://ollama.com/download)
+- A [Neon Serverless Postgres](https://neon.tech/) database (or any Postgres 16+ with `pgvector`)
+- SMTP credentials for OTP emails (e.g., Gmail App Password)
+
+### 1. Configure Environment
+
 ```bash
 cp .env.example .env
 ```
 
-Populate the `.env` with your Neon database URL and local Ollama routing:
-```bash
-DATABASE_URL="postgres://user:password@ep-your-db-id.region.aws.neon.tech/neondb?sslmode=require"
-OLLAMA_BASE_URL="[http://host.docker.internal:11434](http://host.docker.internal:11434)"
-```
-**Note:** host.docker.internal is required for the Dockerized FastAPI app to communicate with Ollama running on the host machine's localhost; otherwise, use the hosted address.
+```ini
+# Database
+DATABASE_URL="postgres://user:password@ep-your-db.region.aws.neon.tech/neondb?sslmode=require"
 
-### 2. Pull Local AI Models
-Ensure Ollama is running, then pull the required models for embeddings and generation:
+# AI / LLM
+OLLAMA_BASE_URL="http://host.docker.internal:11434"  # Docker → host Ollama
+
+# Security
+SECRET_KEY="generate-a-strong-random-key"
+
+# SMTP (any provider — Gmail, SES, SendGrid, etc.)
+SMTP_SERVER="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_USERNAME="you@gmail.com"
+SMTP_PASSWORD="your-app-password"
+```
+
+> **Note:** `host.docker.internal` routes from the Docker container to the host machine's Ollama instance.
+
+### 2. Pull AI Models
+
 ```bash
 ollama pull mxbai-embed-large
-ollama pull deepseek-r1:8b  # or llama3.2
+ollama pull deepseek-r1:8b
 ```
 
-### 3. Build and Run via Docker
+### 3. Run
+
 ```bash
 docker compose up --build -d
 ```
-The FastAPI application will be available at ```http://localhost:8000```. Database migrations (creating tables and HNSW indices) are executed automatically on startup via FastAPI lifecycle hooks.
+
+The API is available at `http://localhost:8000`. Migrations run automatically on startup.
+
+### 4. Run Tests
+
+```bash
+uv run pytest tests/ -v --cov=src --cov-report=term-missing
+```
+
+---
+
+## License
+
+[MIT](LICENSE)

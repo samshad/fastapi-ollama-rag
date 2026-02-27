@@ -17,8 +17,12 @@ class Settings(BaseSettings):
 
     database_url: PostgresDsn
 
+    # RAG Tuning Settings
+    chunk_size: int = 1000
+    chunk_overlap: int = 200
+
     # Using host.docker.internal allows Docker containers
-    # to hit the host machine's Ollama instance.
+    # for the host machine's Ollama instance.
     ollama_base_url: str = Field(default="http://host.docker.internal:11434")
     ollama_generation_model: str = Field(default="deepseek-r1:8b")
     ollama_embedding_model: str = Field(default="mxbai-embed-large")
@@ -26,6 +30,16 @@ class Settings(BaseSettings):
 
     betterstack_source_token: str | None = Field(default=None)
 
+    # Auth Settings
+    secret_key: str = "super-secret-default-key-change-in-production"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24 * 7  # 7 days
 
-# Instantiate settings to be imported across the application
+    # SMTP Settings (Gmail)
+    smtp_server: str = "smtp.gmail.com"
+    smtp_port: int = 587
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+
+
 settings = Settings()

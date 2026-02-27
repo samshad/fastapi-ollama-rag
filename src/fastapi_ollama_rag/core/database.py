@@ -25,6 +25,18 @@ async def connect_to_db() -> None:
     global pool
     try:
         logger.info("Initializing database connection pool...")
+
+        # Ensure pgvector extension exists BEFORE pool creation.
+        # The pool's init hook registers the vector codec on every new
+        # connection, which fails if the extension hasn't been created yet.
+        # On a fresh CI database this would otherwise be a chicken-and-egg
+        # problem (migrations run after pool init).
+        bootstrap = await asyncpg.connect(dsn=str(settings.database_url))
+        try:
+            await bootstrap.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        finally:
+            await bootstrap.close()
+
         pool = await asyncpg.create_pool(
             dsn=str(settings.database_url),
             init=init_connection,

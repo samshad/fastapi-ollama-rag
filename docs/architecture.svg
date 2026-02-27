@@ -1,0 +1,328 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 920" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <!-- Shadows -->
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0002"/>
+    </filter>
+    <filter id="shadow-lg" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0003"/>
+    </filter>
+    <!-- Arrowhead -->
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-emerald" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#10b981"/>
+    </marker>
+    <marker id="arrow-amber" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f59e0b"/>
+    </marker>
+    <marker id="arrow-violet" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto" markerUnits="strokeWidth">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#8b5cf6"/>
+    </marker>
+    <!-- Background pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="920" fill="#f8fafc"/>
+  <rect width="1280" height="920" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Title Bar -->
+  <rect x="0" y="0" width="1280" height="56" fill="#0f172a" rx="0"/>
+  <text x="640" y="35" text-anchor="middle" fill="#f8fafc" font-size="18" font-weight="700" letter-spacing="0.5">FastAPI-Ollama-RAG · System Architecture</text>
+  <text x="1248" y="35" text-anchor="end" fill="#64748b" font-size="11">v0.1.0</text>
+
+  <!-- ================================================================== -->
+  <!-- CLIENT LAYER -->
+  <!-- ================================================================== -->
+  <rect x="32" y="76" width="1216" height="76" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="32" y="76" width="1216" height="28" rx="12" fill="#f1f5f9"/>
+  <rect x="32" y="92" width="1216" height="12" fill="#f1f5f9"/>
+  <text x="52" y="95" fill="#475569" font-size="11" font-weight="600" letter-spacing="1" text-transform="uppercase">CLIENT LAYER</text>
+
+  <!-- Client icons -->
+  <rect x="120" y="112" width="140" height="30" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="190" y="132" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="600">Web / Mobile App</text>
+
+  <rect x="300" y="112" width="140" height="30" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="370" y="132" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="600">cURL / Postman</text>
+
+  <rect x="480" y="112" width="140" height="30" rx="6" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="550" y="132" text-anchor="middle" fill="#1e40af" font-size="12" font-weight="600">SDK / httpx</text>
+
+  <text x="780" y="132" fill="#94a3b8" font-size="12" font-style="italic">HTTPS · JSON · OAuth2 Bearer Token · Streaming SSE</text>
+
+  <!-- ================================================================== -->
+  <!-- API GATEWAY — FastAPI -->
+  <!-- ================================================================== -->
+  <rect x="32" y="172" width="1216" height="194" rx="12" fill="#fff" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow-lg)"/>
+  <rect x="32" y="172" width="1216" height="30" rx="12" fill="#3b82f6"/>
+  <rect x="32" y="190" width="1216" height="12" fill="#3b82f6"/>
+  <text x="52" y="193" fill="#fff" font-size="12" font-weight="700" letter-spacing="1">FASTAPI APPLICATION</text>
+  <text x="1216" y="193" text-anchor="end" fill="#bfdbfe" font-size="10">Uvicorn ASGI · Docker · Port 8000</text>
+
+  <!-- Middleware row -->
+  <rect x="52" y="214" width="250" height="36" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="60" y="228" fill="#64748b" font-size="9" font-weight="600">MIDDLEWARE</text>
+  <text x="60" y="242" fill="#1e40af" font-size="11" font-weight="500">Lifespan · DB Pool · Migrations</text>
+
+  <rect x="320" y="214" width="250" height="36" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="328" y="228" fill="#64748b" font-size="9" font-weight="600">SECURITY</text>
+  <text x="328" y="242" fill="#1e40af" font-size="11" font-weight="500">JWT (HS256) · bcrypt · OAuth2</text>
+
+  <rect x="588" y="214" width="250" height="36" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="596" y="228" fill="#64748b" font-size="9" font-weight="600">OBSERVABILITY</text>
+  <text x="596" y="242" fill="#1e40af" font-size="11" font-weight="500">structlog · File Rotation · Better Stack</text>
+
+  <rect x="856" y="214" width="372" height="36" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="864" y="228" fill="#64748b" font-size="9" font-weight="600">CONFIGURATION</text>
+  <text x="864" y="242" fill="#1e40af" font-size="11" font-weight="500">Pydantic Settings · .env · Fail-fast Validation</text>
+
+  <!-- Route boxes -->
+  <rect x="52" y="264" width="296" height="88" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="200" y="284" text-anchor="middle" fill="#166534" font-size="12" font-weight="700">/api/v1/auth</text>
+  <text x="68" y="302" fill="#15803d" font-size="10.5">POST /request-otp</text>
+  <text x="68" y="316" fill="#15803d" font-size="10.5">POST /register        POST /login</text>
+  <text x="68" y="330" fill="#15803d" font-size="10.5">POST /request-reset-otp</text>
+  <text x="68" y="344" fill="#15803d" font-size="10.5">POST /reset-password</text>
+
+  <rect x="368" y="264" width="296" height="88" rx="8" fill="#fefce8" stroke="#fde047" stroke-width="1"/>
+  <text x="516" y="284" text-anchor="middle" fill="#854d0e" font-size="12" font-weight="700">/api/v1/documents 🔒</text>
+  <text x="384" y="302" fill="#a16207" font-size="10.5">POST /ingest  →  Full RAG Pipeline</text>
+  <text x="384" y="316" fill="#a16207" font-size="10.5">GET  /         →  List User Files</text>
+  <text x="384" y="330" fill="#a16207" font-size="10.5">DEL  /&#123;file_id&#125; →  Remove File + Chunks</text>
+  <text x="384" y="344" fill="#92400e" font-size="9" font-style="italic">SHA-256 dedup · Multi-tenant isolation</text>
+
+  <rect x="684" y="264" width="296" height="88" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1"/>
+  <text x="832" y="284" text-anchor="middle" fill="#581c87" font-size="12" font-weight="700">/api/v1/chat 🔒</text>
+  <text x="700" y="302" fill="#7e22ce" font-size="10.5">POST /search       →  Vector Search</text>
+  <text x="700" y="316" fill="#7e22ce" font-size="10.5">POST /completions  →  RAG + Stream</text>
+  <text x="700" y="330" fill="#6b21a8" font-size="9" font-style="italic">HNSW cosine similarity · pgvector</text>
+  <text x="700" y="344" fill="#6b21a8" font-size="9" font-style="italic">StreamingResponse (text/plain)</text>
+
+  <rect x="1000" y="264" width="228" height="88" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="1114" y="284" text-anchor="middle" fill="#334155" font-size="12" font-weight="700">/health</text>
+  <text x="1016" y="302" fill="#475569" font-size="10.5">GET / → DB version check</text>
+  <text x="1016" y="330" fill="#64748b" font-size="9" font-style="italic">Liveness probe for Docker</text>
+  <text x="1016" y="344" fill="#64748b" font-size="9" font-style="italic">and orchestration health</text>
+
+  <!-- ================================================================== -->
+  <!-- SERVICE LAYER -->
+  <!-- ================================================================== -->
+  <rect x="32" y="386" width="1216" height="130" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="32" y="386" width="1216" height="28" rx="12" fill="#f1f5f9"/>
+  <rect x="32" y="402" width="1216" height="12" fill="#f1f5f9"/>
+  <text x="52" y="405" fill="#475569" font-size="11" font-weight="600" letter-spacing="1">SERVICE LAYER</text>
+  <text x="1216" y="405" text-anchor="end" fill="#94a3b8" font-size="10">Business logic · Orchestration · Domain rules</text>
+
+  <rect x="52" y="424" width="155" height="80" rx="8" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1"/>
+  <text x="129" y="444" text-anchor="middle" fill="#065f46" font-size="11" font-weight="700">auth.py</text>
+  <text x="60" y="460" fill="#047857" font-size="9.5">OTP generation</text>
+  <text x="60" y="473" fill="#047857" font-size="9.5">Registration flow</text>
+  <text x="60" y="486" fill="#047857" font-size="9.5">Login · Password reset</text>
+  <text x="60" y="499" fill="#047857" font-size="9.5">JWT issuance</text>
+
+  <rect x="222" y="424" width="155" height="80" rx="8" fill="#fff7ed" stroke="#fed7aa" stroke-width="1"/>
+  <text x="299" y="444" text-anchor="middle" fill="#9a3412" font-size="11" font-weight="700">pdf_parser.py</text>
+  <text x="230" y="460" fill="#c2410c" font-size="9.5">PyMuPDF extraction</text>
+  <text x="230" y="473" fill="#c2410c" font-size="9.5">Threaded via asyncio</text>
+  <text x="230" y="486" fill="#c2410c" font-size="9.5">Metadata harvest</text>
+  <text x="230" y="499" fill="#c2410c" font-size="9.5">Memory-only (no disk)</text>
+
+  <rect x="392" y="424" width="155" height="80" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="469" y="444" text-anchor="middle" fill="#1e3a5f" font-size="11" font-weight="700">chunker.py</text>
+  <text x="400" y="460" fill="#1d4ed8" font-size="9.5">Sliding window O(n)</text>
+  <text x="400" y="473" fill="#1d4ed8" font-size="9.5">Boundary snapping</text>
+  <text x="400" y="486" fill="#1d4ed8" font-size="9.5">Configurable size</text>
+  <text x="400" y="499" fill="#1d4ed8" font-size="9.5">Overlap control</text>
+
+  <rect x="562" y="424" width="155" height="80" rx="8" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1"/>
+  <text x="639" y="444" text-anchor="middle" fill="#581c87" font-size="11" font-weight="700">embeddings.py</text>
+  <text x="570" y="460" fill="#7e22ce" font-size="9.5">Ollama REST API</text>
+  <text x="570" y="473" fill="#7e22ce" font-size="9.5">mxbai-embed-large</text>
+  <text x="570" y="486" fill="#7e22ce" font-size="9.5">1024-dim vectors</text>
+  <text x="570" y="499" fill="#7e22ce" font-size="9.5">30s timeout</text>
+
+  <rect x="732" y="424" width="155" height="80" rx="8" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="809" y="444" text-anchor="middle" fill="#9d174d" font-size="11" font-weight="700">generation.py</text>
+  <text x="740" y="460" fill="#be185d" font-size="9.5">Ollama streaming</text>
+  <text x="740" y="473" fill="#be185d" font-size="9.5">deepseek-r1:8b</text>
+  <text x="740" y="486" fill="#be185d" font-size="9.5">Strict RAG prompt</text>
+  <text x="740" y="499" fill="#be185d" font-size="9.5">Token-by-token SSE</text>
+
+  <rect x="902" y="424" width="155" height="80" rx="8" fill="#fef9c3" stroke="#fde047" stroke-width="1"/>
+  <text x="979" y="444" text-anchor="middle" fill="#854d0e" font-size="11" font-weight="700">db_ops.py</text>
+  <text x="910" y="460" fill="#a16207" font-size="9.5">Bulk chunk insert</text>
+  <text x="910" y="473" fill="#a16207" font-size="9.5">Vector search (HNSW)</text>
+  <text x="910" y="486" fill="#a16207" font-size="9.5">File management</text>
+  <text x="910" y="499" fill="#a16207" font-size="9.5">aiosql queries</text>
+
+  <rect x="1072" y="424" width="155" height="80" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <text x="1149" y="444" text-anchor="middle" fill="#166534" font-size="11" font-weight="700">email_service.py</text>
+  <text x="1080" y="460" fill="#15803d" font-size="9.5">aiosmtplib async</text>
+  <text x="1080" y="473" fill="#15803d" font-size="9.5">Gmail SMTP (TLS)</text>
+  <text x="1080" y="486" fill="#15803d" font-size="9.5">OTP dispatch</text>
+  <text x="1080" y="499" fill="#15803d" font-size="9.5">Graceful mock mode</text>
+
+  <!-- ================================================================== -->
+  <!-- REPOSITORY / DATA LAYER -->
+  <!-- ================================================================== -->
+  <rect x="32" y="536" width="590" height="100" rx="12" fill="#fff" stroke="#e2e8f0" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="32" y="536" width="590" height="28" rx="12" fill="#f1f5f9"/>
+  <rect x="32" y="552" width="590" height="12" fill="#f1f5f9"/>
+  <text x="52" y="555" fill="#475569" font-size="11" font-weight="600" letter-spacing="1">REPOSITORY LAYER</text>
+
+  <rect x="52" y="574" width="260" height="50" rx="8" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
+  <text x="182" y="594" text-anchor="middle" fill="#0c4a6e" font-size="11" font-weight="700">user_repo.py</text>
+  <text x="182" y="610" text-anchor="middle" fill="#0369a1" font-size="9.5">CRUD: users · OTPs · password ops</text>
+
+  <rect x="332" y="574" width="270" height="50" rx="8" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
+  <text x="467" y="594" text-anchor="middle" fill="#0c4a6e" font-size="11" font-weight="700">aiosql (*.sql files)</text>
+  <text x="467" y="610" text-anchor="middle" fill="#0369a1" font-size="9.5">users.sql · documents.sql · bulk_insert.sql</text>
+
+  <!-- ================================================================== -->
+  <!-- EXTERNAL: PostgreSQL + pgvector -->
+  <!-- ================================================================== -->
+  <rect x="32" y="656" width="590" height="244" rx="12" fill="#fff" stroke="#10b981" stroke-width="1.5" filter="url(#shadow-lg)"/>
+  <rect x="32" y="656" width="590" height="28" rx="12" fill="#10b981"/>
+  <rect x="32" y="672" width="590" height="12" fill="#10b981"/>
+  <text x="52" y="675" fill="#fff" font-size="12" font-weight="700" letter-spacing="1">POSTGRESQL 16 + PGVECTOR</text>
+  <text x="590" y="675" text-anchor="end" fill="#a7f3d0" font-size="10">Neon (Cloud) · asyncpg Pool · Multi-tenant</text>
+
+  <!-- Tables -->
+  <rect x="52" y="696" width="132" height="90" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <rect x="52" y="696" width="132" height="22" rx="6" fill="#dcfce7"/>
+  <rect x="52" y="710" width="132" height="8" fill="#dcfce7"/>
+  <text x="118" y="712" text-anchor="middle" fill="#166534" font-size="10" font-weight="700">users</text>
+  <text x="60" y="732" fill="#15803d" font-size="9">id UUID PK</text>
+  <text x="60" y="744" fill="#15803d" font-size="9">email UNIQUE</text>
+  <text x="60" y="756" fill="#15803d" font-size="9">hashed_password</text>
+  <text x="60" y="768" fill="#15803d" font-size="9">is_verified</text>
+  <text x="60" y="780" fill="#15803d" font-size="9">created_at</text>
+
+  <rect x="198" y="696" width="132" height="90" rx="6" fill="#f0fdf4" stroke="#86efac" stroke-width="1"/>
+  <rect x="198" y="696" width="132" height="22" rx="6" fill="#dcfce7"/>
+  <rect x="198" y="710" width="132" height="8" fill="#dcfce7"/>
+  <text x="264" y="712" text-anchor="middle" fill="#166534" font-size="10" font-weight="700">otps</text>
+  <text x="206" y="732" fill="#15803d" font-size="9">id UUID PK</text>
+  <text x="206" y="744" fill="#15803d" font-size="9">email (idx)</text>
+  <text x="206" y="756" fill="#15803d" font-size="9">code VARCHAR(6)</text>
+  <text x="206" y="768" fill="#15803d" font-size="9">expires_at</text>
+  <text x="206" y="780" fill="#15803d" font-size="9">created_at</text>
+
+  <rect x="344" y="696" width="132" height="90" rx="6" fill="#fefce8" stroke="#fde047" stroke-width="1"/>
+  <rect x="344" y="696" width="132" height="22" rx="6" fill="#fef9c3"/>
+  <rect x="344" y="710" width="132" height="8" fill="#fef9c3"/>
+  <text x="410" y="712" text-anchor="middle" fill="#854d0e" font-size="10" font-weight="700">files</text>
+  <text x="352" y="732" fill="#a16207" font-size="9">id UUID PK</text>
+  <text x="352" y="744" fill="#a16207" font-size="9">user_id FK → users</text>
+  <text x="352" y="756" fill="#a16207" font-size="9">filename</text>
+  <text x="352" y="768" fill="#a16207" font-size="9">file_hash (UNIQUE)</text>
+  <text x="352" y="780" fill="#a16207" font-size="9">created_at</text>
+
+  <rect x="490" y="696" width="118" height="90" rx="6" fill="#faf5ff" stroke="#d8b4fe" stroke-width="1"/>
+  <rect x="490" y="696" width="118" height="22" rx="6" fill="#f3e8ff"/>
+  <rect x="490" y="710" width="118" height="8" fill="#f3e8ff"/>
+  <text x="549" y="712" text-anchor="middle" fill="#581c87" font-size="10" font-weight="700">documents</text>
+  <text x="498" y="732" fill="#7e22ce" font-size="9">id UUID PK</text>
+  <text x="498" y="744" fill="#7e22ce" font-size="9">content TEXT</text>
+  <text x="498" y="756" fill="#7e22ce" font-size="9">metadata JSONB</text>
+  <text x="498" y="768" fill="#7e22ce" font-size="9">embedding VECTOR</text>
+  <text x="498" y="780" fill="#7e22ce" font-size="9">user_id · file_id FK</text>
+
+  <!-- FK relationship lines -->
+  <line x1="410" y1="744" x2="184" y2="744" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="540" y1="780" x2="476" y2="744" stroke="#64748b" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Indexes -->
+  <rect x="52" y="798" width="556" height="38" rx="6" fill="#f1f5f9" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="60" y="814" fill="#64748b" font-size="9" font-weight="600">INDEXES</text>
+  <text x="60" y="828" fill="#475569" font-size="9">HNSW (vector_cosine_ops) · GIN (metadata) · B-tree (user_id, email, file_hash) · ON DELETE CASCADE</text>
+
+  <!-- Descriptive note -->
+  <rect x="52" y="844" width="556" height="22" rx="4" fill="#ecfdf5"/>
+  <text x="60" y="860" fill="#047857" font-size="9" font-style="italic">★ Transaction rollback isolation — tests never commit data, real rows untouched</text>
+
+  <!-- ================================================================== -->
+  <!-- EXTERNAL: Ollama -->
+  <!-- ================================================================== -->
+  <rect x="658" y="536" width="590" height="180" rx="12" fill="#fff" stroke="#8b5cf6" stroke-width="1.5" filter="url(#shadow-lg)"/>
+  <rect x="658" y="536" width="590" height="28" rx="12" fill="#8b5cf6"/>
+  <rect x="658" y="552" width="590" height="12" fill="#8b5cf6"/>
+  <text x="678" y="555" fill="#fff" font-size="12" font-weight="700" letter-spacing="1">OLLAMA (LOCAL LLM RUNTIME)</text>
+  <text x="1216" y="555" text-anchor="end" fill="#c4b5fd" font-size="10">host.docker.internal:11434</text>
+
+  <rect x="678" y="576" width="260" height="68" rx="8" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+  <text x="808" y="596" text-anchor="middle" fill="#5b21b6" font-size="11" font-weight="700">Embedding Model</text>
+  <text x="808" y="614" text-anchor="middle" fill="#7c3aed" font-size="11">mxbai-embed-large</text>
+  <text x="808" y="632" text-anchor="middle" fill="#8b5cf6" font-size="10">1024 dimensions · /api/embeddings</text>
+
+  <rect x="960" y="576" width="268" height="68" rx="8" fill="#fdf2f8" stroke="#f9a8d4" stroke-width="1"/>
+  <text x="1094" y="596" text-anchor="middle" fill="#9d174d" font-size="11" font-weight="700">Generation Model</text>
+  <text x="1094" y="614" text-anchor="middle" fill="#be185d" font-size="11">deepseek-r1:8b</text>
+  <text x="1094" y="632" text-anchor="middle" fill="#db2777" font-size="10">Streaming · /api/chat</text>
+
+  <rect x="678" y="660" width="550" height="44" rx="6" fill="#f5f3ff" stroke="#ddd6fe" stroke-width="1"/>
+  <text x="686" y="678" fill="#6d28d9" font-size="10" font-weight="600">RAG Pipeline Flow</text>
+  <text x="686" y="694" fill="#7c3aed" font-size="10">PDF → PyMuPDF → Chunker → Embed (mxbai) → pgvector → Retrieve → Generate (deepseek) → Stream</text>
+
+  <!-- ================================================================== -->
+  <!-- EXTERNAL: SMTP -->
+  <!-- ================================================================== -->
+  <rect x="658" y="736" width="590" height="74" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="658" y="736" width="590" height="28" rx="12" fill="#f59e0b"/>
+  <rect x="658" y="752" width="590" height="12" fill="#f59e0b"/>
+  <text x="678" y="755" fill="#fff" font-size="12" font-weight="700" letter-spacing="1">SMTP · GMAIL</text>
+  <text x="1216" y="755" text-anchor="end" fill="#fef3c7" font-size="10">smtp.gmail.com:587 · TLS</text>
+
+  <text x="678" y="786" fill="#92400e" font-size="11">aiosmtplib (async, non-blocking) · OTP email dispatch · Graceful fallback if credentials missing</text>
+  <text x="678" y="802" fill="#a16207" font-size="10" font-style="italic">Used for: registration OTP + password reset OTP</text>
+
+  <!-- ================================================================== -->
+  <!-- EXTERNAL: Better Stack -->
+  <!-- ================================================================== -->
+  <rect x="658" y="826" width="590" height="74" rx="12" fill="#fff" stroke="#64748b" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="658" y="826" width="590" height="28" rx="12" fill="#334155"/>
+  <rect x="658" y="842" width="590" height="12" fill="#334155"/>
+  <text x="678" y="845" fill="#fff" font-size="12" font-weight="700" letter-spacing="1">OBSERVABILITY</text>
+  <text x="1216" y="845" text-anchor="end" fill="#94a3b8" font-size="10">Optional · Token-gated</text>
+
+  <text x="678" y="878" fill="#475569" font-size="11">Better Stack (Logtail) · structlog JSON · Rotating File Handler (10 MB × 5) · stdout Console</text>
+  <text x="678" y="894" fill="#64748b" font-size="10" font-style="italic">Three sinks: console + file + cloud — structured JSON in prod, colored in debug</text>
+
+  <!-- ================================================================== -->
+  <!-- CONNECTING ARROWS -->
+  <!-- ================================================================== -->
+
+  <!-- Client → FastAPI -->
+  <line x1="370" y1="152" x2="370" y2="172" stroke="#3b82f6" stroke-width="2" marker-end="url(#arrow-blue)"/>
+
+  <!-- FastAPI routes → Service layer -->
+  <line x1="200" y1="352" x2="129" y2="424" stroke="#10b981" stroke-width="1.5" marker-end="url(#arrow-emerald)"/>
+  <line x1="516" y1="352" x2="469" y2="424" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+  <line x1="516" y1="352" x2="639" y2="424" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrow-violet)"/>
+  <line x1="832" y1="352" x2="809" y2="424" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrow-violet)"/>
+  <line x1="832" y1="352" x2="639" y2="424" stroke="#8b5cf6" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrow-violet)"/>
+
+  <!-- Service → Repository -->
+  <line x1="129" y1="504" x2="182" y2="574" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="979" y1="504" x2="467" y2="574" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Repository → Postgres -->
+  <line x1="327" y1="624" x2="327" y2="656" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-emerald)"/>
+
+  <!-- Services → Ollama -->
+  <line x1="639" y1="504" x2="808" y2="576" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrow-violet)"/>
+  <line x1="809" y1="504" x2="1094" y2="576" stroke="#8b5cf6" stroke-width="1.5" marker-end="url(#arrow-violet)"/>
+
+  <!-- Auth → Email -->
+  <line x1="1149" y1="504" x2="1149" y2="536" stroke="#f59e0b" stroke-width="1.5"/>
+  <line x1="1149" y1="536" x2="1149" y2="736" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+
+</svg>
